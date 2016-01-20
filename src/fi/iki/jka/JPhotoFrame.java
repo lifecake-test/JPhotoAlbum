@@ -112,13 +112,17 @@ public class JPhotoFrame extends JFrame
         init(frameName, new JPhotoCollection(files));
     }
 
+    public JPhotoFrame(String[] files) {
+        this.photos = new JPhotoCollection(files);
+    }
+
     /** Real init called from different constructors
      */
     protected void init(String frameName, JPhotoCollection photos) throws Exception {
         prefs = Preferences.userRoot().node("/fi/iki/jka/jphotoframe");        
         JPhotoPageInfo.setDefault(prefs.get(PAGEINFO, null));
         photoDirectory = new File(prefs.get(PHOTO_DIR, System.getProperty("user.dir")));
-            
+
         if (photos==null)
             photos = new JPhotoCollection();
         this.photos = photos;
@@ -546,7 +550,7 @@ public class JPhotoFrame extends JFrame
         else if (cmd.equals(JPhotoMenu.A_WATERMARK)) {
             String def = photos.getWatermark();
             if (def.equals(""))
-                def = "© "+Calendar.getInstance().get(Calendar.YEAR)+" ";
+                def = "ï¿½ "+Calendar.getInstance().get(Calendar.YEAR)+" ";
             String res = JOptionPane.showInputDialog(this, "Watermark",
                                                      def);
             if (res!=null)
@@ -580,14 +584,8 @@ public class JPhotoFrame extends JFrame
             showExif();
         }
         else if (cmd.equals(JPhotoMenu.A_SLIDESHOW)) {
-            if (photos.getSize()>0) {
-                JPhotoShow show = new JPhotoShow(photos, 5000, list);
-                show.setVisible(true);
-            }
-            else
-                JOptionPane.showMessageDialog(this, "No photos to show!",
-                                              APP_NAME, JOptionPane.ERROR_MESSAGE);
-                
+            showSlideshowWithInterval(5000);
+
         }
         else if (cmd.equals(JPhotoMenu.A_HELP)) {
             displayHelp();
@@ -596,7 +594,7 @@ public class JPhotoFrame extends JFrame
             JOptionPane.showMessageDialog(this, APP_NAME+" v1.4.5 - Organize and Publish Your Digital Photos.\n"+
                                           "Copyright 2005-2007 Jari Karjala [www.jpkware.com],\n"
                                           +"Tarja Hakala [www.hakalat.net]"
-                                          +" and Zbynek Mužík [zbynek.muzik@email.cz]\n"
+                                          +" and Zbynek Muï¿½ï¿½k [zbynek.muzik@email.cz]\n"
                                           +"This is free software, licenced under the GNU General Public License.",
                                           JPhotoMenu.A_ABOUT, JOptionPane.INFORMATION_MESSAGE);
         }
@@ -624,6 +622,24 @@ public class JPhotoFrame extends JFrame
             System.out.println("Not implemented: "+cmd);
         
         setTitle();
+    }
+
+    public void showSlideshowWithInterval(int interval) {
+        if (photos.getSize()>0) {
+            displayPhotoShow(photos, list, interval);
+        }
+        else
+            displayNoPhotosMessage();
+    }
+
+    public void displayPhotoShow(JPhotoCollection photos, JPhotoList list, int interval) {
+        JPhotoShow show = new JPhotoShow(photos, interval, list);
+        show.setVisible(true);
+    }
+
+    public void displayNoPhotosMessage() {
+        JOptionPane.showMessageDialog(this, "No photos to show!",
+                                      APP_NAME, JOptionPane.ERROR_MESSAGE);
     }
 
     public void insertPhotos(String files[]) {
@@ -913,8 +929,7 @@ public class JPhotoFrame extends JFrame
                 }
             }
             else {
-                JPhotoShow show = new JPhotoShow(photos, 0, list);
-                show.setVisible(true);
+                displayPhotoShow(photos, list, 0);
             }
         }
         else
